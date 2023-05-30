@@ -4,8 +4,6 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const _ = require("lodash");
-const alert = require("alert");
-
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -76,7 +74,7 @@ app.post("/", function (req, res) {
   // console.log(itemName);
   // console.log(listName);
 
-  if (itemName != 0) {
+  if (itemName.length != 0) {
     // create new item
     const item = new Item({
       name: itemName
@@ -96,7 +94,7 @@ app.post("/", function (req, res) {
       });
     }
   } else {
-    alert("Enter Todo!");
+    res.send('<script>alert("You have to enter todo!")</script>');
   }
 
 });
