@@ -4,6 +4,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const _ = require("lodash");
+const flash = require("connect-flash");
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.use(flash());
 
 // connect to mongoDB database
 mongoose.connect("mongodb+srv://prince:prince977@cluster0.bbiddqc.mongodb.net/todolistDB");
@@ -75,23 +77,27 @@ app.post("/", function (req, res) {
   // console.log(itemName);
   // console.log(listName);
 
-  // create new item
-  const item = new Item({
-    name: itemName
-  });
-
-  if (listName === "Today") {
-    // save the item in collection
-    item.save();
-    res.redirect("/");
-  } else {
-    List.findOne({ name: listName }).then((list) => {
-      list.items.push(item);
-      list.save();
-      res.redirect("/" + listName);
-    }).catch((err) => {
-      console.log(err);
+  if (itemName.length != 0) {
+    // create new item
+    const item = new Item({
+      name: itemName
     });
+
+    if (listName === "Today") {
+      // save the item in collection
+      item.save();
+      res.redirect("/");
+    } else {
+      List.findOne({ name: listName }).then((list) => {
+        list.items.push(item);
+        list.save();
+        res.redirect("/" + listName);
+      }).catch((err) => {
+        req.flash(err);
+      });
+    }
+  } else {
+    req.flash("error", "Input must have some value.");
   }
 
 });
@@ -110,7 +116,7 @@ app.post("/delete", (req, res) => {
       console.log(err);
     });
   } else {
-    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}).then((list) => {
+    List.findOneAndUpdate({ name: listName }, { $pull: { items: { _id: checkedItemId } } }).then((list) => {
       res.redirect("/" + listName);
     });
   }
